@@ -1,6 +1,6 @@
 // Credenciais para connectar no broker
 const credentials = {
-    username: 'vinicius',
+    username: 'dispositivo-1',
     password: '123'
 };
 
