@@ -6,7 +6,7 @@ const uri = `mongodb+srv://${appSettings.MongoDB.Username}:${appSettings.MongoDB
 // Função que busca o usuário da base do MongoDB
 // e verifica se as credenciais estão corretas
 const isAuthenticated = (userName, password, callback) => {
-    const client = new MongoClient(uri, { useNewUrlParser: true });
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopolog: true });
 
     client.connect(err => {
         // Se ocorrer um erro na busca do usuário, 

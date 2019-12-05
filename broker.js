@@ -21,6 +21,7 @@ const authorization = (client, username, password, callback) => {
 // se o usuário possui permissão para Publish
 const authorizePublish = (client, topic, payload, callback) => {
     repositorio.getPermissions(client.user, (perms) => {
+        console.log(`Usuário ${client.user} com permissão de publish: ${(perms.authorizePublish === true ? 'Sim': 'Não')}`)
         callback(null, perms.authorizePublish);
     });
 };
@@ -29,6 +30,7 @@ const authorizePublish = (client, topic, payload, callback) => {
 // se o usuário possui permissão para Subscribe
 const authorizeSubscribe = (client, topic, callback) => {
     repositorio.getPermissions(client.user, (perms) => {
+        console.log(`Usuário ${client.user} com permissão de subscribe: ${(perms.authorizePublish === true ? 'Sim': 'Não')}`)
         callback(null, perms.authorizeSubscribe);
     });
 };
@@ -43,7 +45,7 @@ const setUp = () => {
 
 // Gatilho quando broker é iniciado
 server.on('ready', () => {
-    setUp();
+    // setUp();
     console.log('Servidor rodando na porta: ' + settings.port);
 });
 
@@ -55,4 +57,10 @@ server.on('clientConnected', (client) => {
 // Gatilho quando um cliente disconecta
 server.on('clientDisconnected', (client) => {
     console.log('Cliente disconectado:', client.id);
+});
+
+// Mensagens enviadas
+server.on('published', (packet, client) => {
+    var msg = packet.payload.toString('utf8');
+    console.log('Mensagem sendo enviada: ' + msg);
 });
