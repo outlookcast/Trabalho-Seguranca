@@ -11,7 +11,7 @@ const isAuthenticated = (userName, password, callback) => {
     client.connect(err => {
         // Se ocorrer um erro na busca do usuário, 
         // então não autenticamos esse usuário
-        if (err) callback(false);
+        if (err) callback(null, false);
 
         const collection = client.db(appSettings.MongoDB.Database).collection(appSettings.MongoDB.Collection);
 
@@ -26,22 +26,21 @@ const isAuthenticated = (userName, password, callback) => {
             if(userDB) {
                 const passwordDB = userDB.password;
                 const passwordAux = sha1(password);
-                callback(passwordDB === passwordAux);
+                callback(null, (passwordDB == passwordAux));
+            } else {
+                callback(null, false);
             }
-
-            callback(false);
         })
 
         client.close();
     });
 };
 
-// Função que busca as permissões de um usuário do banco MongoDB
-const getPermissions = (userName, callback) => {
+const canPublish = (userName, callback) => {
     const client = new MongoClient(uri, { useNewUrlParser: true });
 
     client.connect(err => {
-        if (err) callback(false);
+        if (err) callback(null, false);
 
         const collection = client.db("db_users").collection("user");
 
@@ -53,17 +52,39 @@ const getPermissions = (userName, callback) => {
             // Se ocorrer algum erro na busca dos dados,
             // então deixamos o usuário sem permissões de
             // publish e subscribe
-            if (err) callback({
-                authorizePublish: false,
-                authorizeSubscribe: false
-            });
+            if (err) callback(null, false);
 
             const userDB = result[0];
 
-            callback({
-                authorizePublish: userDB.authorizePublish,
-                authorizeSubscribe: userDB.authorizeSubscribe
-            });
+            callback(null, userDB.authorizePublish);
+        });
+
+        client.close();
+    });
+}
+
+const canSubscribe = (userName, callback) => {
+    const client = new MongoClient(uri, { useNewUrlParser: true });
+
+    client.connect(err => {
+        if (err) callback(null, false);
+
+        const collection = client.db("db_users").collection("user");
+
+        var query = {
+            userName: userName
+        };
+
+        collection.find(query).toArray((err, result) => {
+            // Se ocorrer algum erro na busca dos dados,
+            // então deixamos o usuário sem permissões de
+            // publish e subscribe
+            if (err) callback(null, false);
+
+            const userDB = result[0];
+
+            if(userDB) callback(null, userDB.authorizeSubscribe)
+            else callback (null, false);
         });
 
         client.close();
@@ -72,4 +93,5 @@ const getPermissions = (userName, callback) => {
 
 
 exports.isAuthenticated = isAuthenticated;
-exports.getPermissions = getPermissions;
+exports.canPublish = canPublish;
+exports.canSubscribe = canSubscribe;
